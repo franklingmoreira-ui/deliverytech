@@ -6,6 +6,7 @@ import com.deliverytech.entity.Produto;
 import com.deliverytech.entity.Restaurante;
 import com.deliverytech.service.ProdutoService;
 import com.deliverytech.service.RestauranteService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,13 +25,13 @@ private final RestauranteService restauranteService;
 
 @PostMapping
 public ResponseEntity<ProdutoResponse> cadastrar(@Valid @RequestBody ProdutoRequest request) {
-        Restaurante restaurante = restauranteService.buscarPorId(request.getRestauranteId())
-                .orElseThrow(() -> new RuntimeException("Restaurante não encontrado para o ID: " + request.getRestauranteId()));
+        // CORREÇÃO FINAL: A chamada agora é direta, pois o service já trata o erro.
+        Restaurante restaurante = restauranteService.buscarPorId(request.getRestauranteId());
 
         Produto produto = Produto.builder()
                 .nome(request.getNome())
-                .descricao(request.getDescricao())
                 .categoria(request.getCategoria())
+                .descricao(request.getDescricao())
                 .preco(request.getPreco())
                 .disponivel(true)
                 .restaurante(restaurante)
@@ -50,13 +51,13 @@ public List<ProdutoResponse> listarPorRestaurante(@PathVariable Long restaurante
 
 @PutMapping("/{id}")
 public ResponseEntity<ProdutoResponse> atualizar(@PathVariable Long id, @Valid @RequestBody ProdutoRequest request) {
-        Produto produtoParaAtualizar = Produto.builder()
+        Produto atualizado = Produto.builder()
                 .nome(request.getNome())
-                .descricao(request.getDescricao())
                 .categoria(request.getCategoria())
+                .descricao(request.getDescricao())
                 .preco(request.getPreco())
                 .build();
-        Produto salvo = produtoService.atualizar(id, produtoParaAtualizar);
+        Produto salvo = produtoService.atualizar(id, atualizado);
         return ResponseEntity.ok(new ProdutoResponse(salvo.getId(), salvo.getNome(), salvo.getCategoria(), salvo.getDescricao(), salvo.getPreco(), salvo.isDisponivel()));
 }
 

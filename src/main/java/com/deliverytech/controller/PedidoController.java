@@ -30,14 +30,12 @@ private final ProdutoService produtoService;
 
 @PostMapping
 public ResponseEntity<PedidoResponse> criar(@Valid @RequestBody PedidoRequest request) {
-        Cliente cliente = clienteService.buscarPorId(request.getClienteId())
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
-        Restaurante restaurante = restauranteService.buscarPorId(request.getRestauranteId())
-                .orElseThrow(() -> new RuntimeException("Restaurante não encontrado"));
+        // CORREÇÃO AQUI: As chamadas agora são diretas.
+        Cliente cliente = clienteService.buscarPorId(request.getClienteId());
+        Restaurante restaurante = restauranteService.buscarPorId(request.getRestauranteId());
 
         List<ItemPedido> itens = request.getItens().stream().map(item -> {
-        Produto produto = produtoService.buscarPorId(item.getProdutoId())
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
+        Produto produto = produtoService.buscarPorId(item.getProdutoId());
         ItemPedido itemPedido = ItemPedido.builder()
                 .produto(produto)
                 .quantidade(item.getQuantidade())

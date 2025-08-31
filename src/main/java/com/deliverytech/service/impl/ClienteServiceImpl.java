@@ -1,13 +1,13 @@
 package com.deliverytech.service.impl;
 
 import com.deliverytech.entity.Cliente;
+import com.deliverytech.exception.EntityNotFoundException;
 import com.deliverytech.repository.ClienteRepository;
 import com.deliverytech.service.ClienteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -17,12 +17,14 @@ public class ClienteServiceImpl implements ClienteService {
 
     @Override
     public Cliente cadastrar(Cliente cliente) {
+        // Lógica de negócio, como verificar se o e-mail já existe, poderia ser adicionada aqui
         return clienteRepository.save(cliente);
     }
 
     @Override
-    public Optional<Cliente> buscarPorId(Long id) {
-        return clienteRepository.findById(id);
+    public Cliente buscarPorId(Long id) {
+        return clienteRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Cliente não encontrado com o ID: " + id));
     }
 
     @Override
@@ -32,20 +34,23 @@ public class ClienteServiceImpl implements ClienteService {
 
     @Override
     public Cliente atualizar(Long id, Cliente atualizado) {
-        return clienteRepository.findById(id)
-                .map(c -> {
-                    c.setNome(atualizado.getNome());
-                    // Adicione outros campos para atualizar se necessário, ex: email, telefone
-                    return clienteRepository.save(c);
-                }).orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+        // Reutiliza o buscarPorId que já trata o erro de "não encontrado"
+        Cliente existente = buscarPorId(id);
+
+        // Atualiza os campos do cliente existente com os novos dados
+        existente.setNome(atualizado.getNome());
+        existente.setEmail(atualizado.getEmail());
+        existente.setTelefone(atualizado.getTelefone());
+        existente.setEndereco(atualizado.getEndereco());
+        
+        return clienteRepository.save(existente);
     }
 
     @Override
     public void ativarDesativar(Long id) {
-        clienteRepository.findById(id).ifPresent(c -> {
-            // Correção aqui: use isAtivo() para boolean
-            c.setAtivo(!c.isAtivo());
-            clienteRepository.save(c);
-        });
+        Cliente cliente = buscarPorId(id);
+        // Correção aqui: usa isAtivo() para boolean
+        cliente.setAtivo(!cliente.isAtivo());
+        clienteRepository.save(cliente);
     }
 }

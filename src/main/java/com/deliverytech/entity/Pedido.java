@@ -26,14 +26,18 @@ public class Pedido {
     @JoinColumn(name = "restaurante_id", nullable = false) // Garante que todo pedido tenha um restaurante
     private Restaurante restaurante;
 
-    private BigDecimal total;
+    @Builder.Default
+    private BigDecimal total = BigDecimal.ZERO;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
-    private StatusPedido status;
+    private StatusPedido status = StatusPedido.CRIADO;
 
+    @Builder.Default
     private LocalDateTime dataPedido = LocalDateTime.now();
 
     // Inicializando a lista para evitar NullPointerException
+    @Builder.Default
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemPedido> itens = new ArrayList<>();
 

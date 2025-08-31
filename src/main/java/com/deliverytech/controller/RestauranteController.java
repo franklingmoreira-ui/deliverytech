@@ -43,6 +43,15 @@ public class RestauranteController {
                 .map(r -> new RestauranteResponse(r.getId(), r.getNome(), r.getCategoria(), r.getEndereco(), r.getTelefone(), r.getTaxaEntrega(), r.getTempoEntrega(), r.getHorarioFuncionamento(), r.isAtivo()))
                 .collect(Collectors.toList());
     }
-    
-    // Adicione os outros métodos (buscarPorId, atualizar, etc.) seguindo exatamente o mesmo padrão.
+
+    @GetMapping("/{id}")
+    public ResponseEntity<RestauranteResponse> buscarPorId(@PathVariable Long id) {
+        Restaurante restaurante = restauranteService.buscarPorId(id);
+        RestauranteResponse response = new RestauranteResponse(
+                restaurante.getId(), restaurante.getNome(), restaurante.getCategoria(), restaurante.getEndereco(),
+                restaurante.getTelefone(), restaurante.getTaxaEntrega(), restaurante.getTempoEntrega(),
+                restaurante.getHorarioFuncionamento(), restaurante.isAtivo()
+        );
+        return ResponseEntity.ok(response);
+    }
 }

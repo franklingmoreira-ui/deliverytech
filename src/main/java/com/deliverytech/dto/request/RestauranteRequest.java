@@ -2,11 +2,13 @@ package com.deliverytech.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
+import lombok.Data;
 import java.math.BigDecimal;
 
 /**
- * DTO para dados de cadastro e atualização de restaurante.
- */
+* DTO para dados de cadastro e atualização de restaurante.
+*/
+@Data // Gera getters, setters, etc. automaticamente
 @Schema(description = "Dados para cadastro e atualização de restaurante")
 public class RestauranteRequest {
 
@@ -30,12 +32,12 @@ public class RestauranteRequest {
     @Pattern(regexp = "\\d{10,11}", message = "Telefone deve ter 10 ou 11 dígitos")
     private String telefone;
 
-    @Schema(description = "Taxa de entrega em reais", example = "5.50", minimum = "0")
+    @Schema(description = "Taxa de entrega em reais", example = "5.50")
     @NotNull(message = "Taxa de entrega é obrigatória")
     @DecimalMin(value = "0.0", message = "Taxa de entrega não pode ser negativa")
     private BigDecimal taxaEntrega;
 
-    @Schema(description = "Tempo estimado de entrega em minutos", example = "45", minimum = "10", maximum = "120")
+    @Schema(description = "Tempo estimado de entrega em minutos", example = "45")
     @NotNull(message = "Tempo de entrega é obrigatório")
     @Min(value = 10, message = "Tempo mínimo é 10 minutos")
     @Max(value = 120, message = "Tempo máximo é 120 minutos")
@@ -44,26 +46,4 @@ public class RestauranteRequest {
     @Schema(description = "Horário de funcionamento", example = "18:00-23:00")
     @NotBlank(message = "Horário de funcionamento é obrigatório")
     private String horarioFuncionamento;
-
-    // Getters e Setters
-    public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
-
-    public String getCategoria() { return categoria; }
-    public void setCategoria(String categoria) { this.categoria = categoria; }
-
-    public String getEndereco() { return endereco; }
-    public void setEndereco(String endereco) { this.endereco = endereco; }
-
-    public String getTelefone() { return telefone; }
-    public void setTelefone(String telefone) { this.telefone = telefone; }
-
-    public BigDecimal getTaxaEntrega() { return taxaEntrega; }
-    public void setTaxaEntrega(BigDecimal taxaEntrega) { this.taxaEntrega = taxaEntrega; }
-
-    public Integer getTempoEntrega() { return tempoEntrega; }
-    public void setTempoEntrega(Integer tempoEntrega) { this.tempoEntrega = tempoEntrega; }
-
-    public String getHorarioFuncionamento() { return horarioFuncionamento; }
-    public void setHorarioFuncionamento(String horarioFuncionamento) { this.horarioFuncionamento = horarioFuncionamento; }
 }

@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder // <-- ADICIONE ESTA LINHA
+@Builder
 @Table(name = "itens_pedido")
 public class ItemPedido {
 
@@ -40,6 +40,7 @@ public class ItemPedido {
     @Column(nullable = false)
     private BigDecimal precoUnitario;
 
+    @Builder.Default // <-- A CORREÇÃO ESTÁ AQUI
     @Column(nullable = false)
     private BigDecimal subtotal = BigDecimal.ZERO;
 
