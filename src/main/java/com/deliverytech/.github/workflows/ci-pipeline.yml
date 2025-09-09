@@ -1,0 +1,51 @@
+# Arquivo: .github/workflows/ci-pipeline.yml
+
+name: Pipeline de CI/CD da Aplicação
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-e-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Checkout do código
+        uses: actions/checkout@v4
+
+      - name: 2. Configurar ambiente Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 3. Instalar dependências
+        run: npm install
+
+      - name: 4. Rodar testes automatizados
+        run: npm test
+
+      - name: 5. Login no Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 6. Construir e enviar imagem Docker
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/minha-app:latest
+
+      - name: 7. Deploy no servidor de homologação
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/minha-app:latest
+            docker stop minha-app-container || true
+            docker rm minha-app-container || true
+            docker run -d --name minha-app-container -p 8080:80 ${{ secrets.DOCKERHUB_USERNAME }}/minha-app:latest
+            

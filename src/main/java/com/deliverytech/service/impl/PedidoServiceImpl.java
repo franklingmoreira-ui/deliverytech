@@ -2,8 +2,9 @@ package com.deliverytech.service.impl;
 
 import com.deliverytech.entity.Pedido;
 import com.deliverytech.entity.StatusPedido;
-import com.deliverytech.exception.EntityNotFoundException; // Importe a nova exceção
+import com.deliverytech.exception.EntityNotFoundException;
 import com.deliverytech.repository.PedidoRepository;
+import com.deliverytech.service.MetricsService;
 import com.deliverytech.service.PedidoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,23 +16,32 @@ import java.util.List;
 public class PedidoServiceImpl implements PedidoService {
 
     private final PedidoRepository pedidoRepository;
+    private final MetricsService metricsService;
 
     @Override
     public Pedido criar(Pedido pedido) {
         pedido.setStatus(StatusPedido.CRIADO);
-        return pedidoRepository.save(pedido);
+        Pedido pedidoSalvo = pedidoRepository.save(pedido);
+        metricsService.incrementarPedidosProcessados(pedido.getStatus().name());
+        return pedidoSalvo;
     }
 
     @Override
     public Pedido buscarPorId(Long id) {
-        // ATUALIZAÇÃO AQUI: Retorna a entidade diretamente ou lança a exceção
-        return pedidoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado com o ID: " + id));
+        long startTime = System.currentTimeMillis(); // MARCA O TEMPO INICIAL
+        try {
+            // Executa a busca no banco de dados
+            return pedidoRepository.findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado com o ID: " + id));
+        } finally {
+            // O BLOCO FINALLY GARANTE QUE O TIMER SERÁ REGISTRADO MESMO SE OCORRER UM ERRO
+            long duration = System.currentTimeMillis() - startTime; // Calcula a duração
+            metricsService.registrarLatencia("buscar_pedido_id", duration); // Registra a métrica
+        }
     }
 
     @Override
     public List<Pedido> listarPorCliente(Long clienteId) {
-        // Correção aqui: removido o "Long" da chamada do método
         return pedidoRepository.findByClienteId(clienteId);
     }
 
@@ -42,17 +52,18 @@ public class PedidoServiceImpl implements PedidoService {
 
     @Override
     public Pedido atualizarStatus(Long id, StatusPedido status) {
-        // Reutiliza o método buscarPorId que já trata o erro de "não encontrado"
-        Pedido pedido = buscarPorId(id);
+        Pedido pedido = buscarPorId(id); // Este método já está sendo "timado"
         pedido.setStatus(status);
-        return pedidoRepository.save(pedido);
+        Pedido pedidoSalvo = pedidoRepository.save(pedido);
+        metricsService.incrementarPedidosProcessados(status.name());
+        return pedidoSalvo;
     }
 
     @Override
     public void cancelar(Long id) {
-        // Reutiliza o método buscarPorId para garantir que o pedido existe antes de cancelar
-        Pedido pedido = buscarPorId(id);
+        Pedido pedido = buscarPorId(id); // Este método também será "timado"
         pedido.setStatus(StatusPedido.CANCELADO);
         pedidoRepository.save(pedido);
+        metricsService.incrementarPedidosProcessados(StatusPedido.CANCELADO.name());
     }
 }

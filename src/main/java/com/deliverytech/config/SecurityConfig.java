@@ -4,7 +4,6 @@ import com.deliverytech.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -25,18 +24,41 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
 
+    // ✅ Define os caminhos que serão públicos (não exigirão autenticação)
+    private static final String[] WHITE_LIST_URLS = {
+            "/api/auth/**",
+            "/h2-console/**",
+            // -- Swagger UI v3 (OpenAPI) -- ✅ CAMINHOS CORRIGIDOS
+            "/api-docs",
+            "/api-docs/**",
+            "/v2/api-docs",
+            "/v3/api-docs",
+            "/v3/api-docs/**",
+            "/swagger-resources",
+            "/swagger-resources/**",
+            "/configuration/ui",
+            "/configuration/security",
+            "/swagger-ui/**",
+            "/webjars/**",
+            "/swagger-ui.html"
+    };
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // ATENÇÃO: PARA TESTES, PERMITE TODAS AS REQUISIÇÕES TEMPORARIAMENTE
-                        .anyRequest().permitAll()
+                        // ✅ Permite acesso livre à nossa white list
+                        .requestMatchers(WHITE_LIST_URLS).permitAll()
+                        // ✅ Exige autenticação para todas as outras requisições
+                        .anyRequest().authenticated()
                 )
+                // ✅✅✅ CORREÇÃO APLICADA AQUI ✅✅✅
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                // Permite que o H2 Console seja exibido em um frame
+                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
