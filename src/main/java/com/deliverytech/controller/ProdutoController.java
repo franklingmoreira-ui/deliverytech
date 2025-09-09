@@ -10,6 +10,8 @@ import com.deliverytech.service.RestauranteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping; // ✅ IMPORT NECESSÁRIO
+import org.springframework.web.bind.annotation.PathVariable; // ✅ IMPORT NECESSÁRIO
 
 import jakarta.validation.Valid;
 import java.util.List;
@@ -25,7 +27,6 @@ private final RestauranteService restauranteService;
 
 @PostMapping
 public ResponseEntity<ProdutoResponse> cadastrar(@Valid @RequestBody ProdutoRequest request) {
-        // CORREÇÃO FINAL: A chamada agora é direta, pois o service já trata o erro.
         Restaurante restaurante = restauranteService.buscarPorId(request.getRestauranteId());
 
         Produto produto = Produto.builder()
@@ -40,6 +41,21 @@ public ResponseEntity<ProdutoResponse> cadastrar(@Valid @RequestBody ProdutoRequ
         Produto salvo = produtoService.cadastrar(produto);
         return ResponseEntity.ok(new ProdutoResponse(
                 salvo.getId(), salvo.getNome(), salvo.getCategoria(), salvo.getDescricao(), salvo.getPreco(), salvo.isDisponivel()));
+}
+
+    // ✅✅✅ MÉTODO ADICIONADO PARA BUSCAR POR ID E TESTAR O CACHE ✅✅✅
+@GetMapping("/{id}")
+public ResponseEntity<ProdutoResponse> buscarPorId(@PathVariable Long id) {
+        Produto produto = produtoService.buscarPorId(id);
+        ProdutoResponse response = new ProdutoResponse(
+                produto.getId(),
+                produto.getNome(),
+                produto.getCategoria(),
+                produto.getDescricao(),
+                produto.getPreco(),
+                produto.isDisponivel()
+        );
+        return ResponseEntity.ok(response);
 }
 
 @GetMapping("/restaurante/{restauranteId}")
