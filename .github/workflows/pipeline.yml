@@ -22,6 +22,7 @@ jobs:
         cache: maven
 
     - name: 3. Build com Maven
-      run: mvn -B package --file pom.xml
+      run: mvn -B package --file pom.xml -DskipTests # Adicionado -DskipTests para não rodar testes aqui
 
+    - name: 4. Rodar Testes com Maven
       run: mvn test
